@@ -38,6 +38,14 @@
   ],
   "author": "Antigravity",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srsergi0/react-bitmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/srsergi0/react-bitmap/issues"
+  },
+  "homepage": "https://srsergi0.github.io/react-bitmap/",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
