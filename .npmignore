@@ -1,0 +1,22 @@
+# Source
+src/
+build.ts
+tsconfig.json
+
+# Test
+test/
+
+# Config
+.git/
+.github/
+.gitignore
+.npmignore
+bun.lock
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

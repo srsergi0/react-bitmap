@@ -1,0 +1,52 @@
+{
+  "name": "react-bitmap",
+  "version": "1.0.0",
+  "description": "High-performance React components for real-time retro pixelation, Bayer dithering, and custom color palette mapping using WebGL 2.0.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "GUIDE.md"
+  ],
+  "scripts": {
+    "build": "bun run build.ts && tsc --emitDeclarationOnly",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "react",
+    "webgl",
+    "dither",
+    "pixelate",
+    "dithering",
+    "bayer",
+    "halftone",
+    "retro",
+    "gameboy",
+    "image-processing",
+    "video-processing",
+    "webgl2"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@webgpu/types": "^0.1.71",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.5.3"
+  }
+}

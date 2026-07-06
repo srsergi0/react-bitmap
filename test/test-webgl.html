@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGL Diagnostics</title>
+</head>
+<body style="background: #111; color: #fff; font-family: sans-serif; padding: 2rem;">
+  <h1>WebGL Compiler Diagnostics</h1>
+  <canvas id="canvas" style="display: none;"></canvas>
+  <div id="output" style="font-size: 1.25rem; font-weight: bold; background: #222; padding: 1rem; border-radius: 8px;">Testing WebGL...</div>
+  <div id="gl-info" style="margin-top: 1rem; color: #888;"></div>
+  
+  <script>
+  try {
+    var canvas = document.getElementById("canvas");
+    var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (!gl) {
+      document.getElementById("output").innerText = "WebGL 1.0 not supported by getContext()";
+    } else {
+      var vendor = gl.getParameter(gl.VENDOR);
+      var renderer = gl.getParameter(gl.RENDERER);
+      var glVersion = gl.getParameter(gl.VERSION);
+      var glslVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+      
+      document.getElementById("gl-info").innerHTML = 
+        "Vendor: " + vendor + "<br>" +
+        "Renderer: " + renderer + "<br>" +
+        "Version: " + glVersion + "<br>" +
+        "GLSL Version: " + glslVersion;
+        
+      var vsSource = "attribute vec2 a_position;\nattribute vec2 a_texCoord;\nvarying vec2 v_texCoord;\nvoid main() {\n  gl_Position = vec4(a_position.x, a_position.y, 0.0, 1.0);\n  v_texCoord = a_texCoord;\n}";
+      
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, vsSource);
+      gl.compileShader(vs);
+      
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+        var log = gl.getShaderInfoLog(vs);
+        document.getElementById("output").innerText = "Compilation failed: " + (log || "unknown error (empty log)");
+        document.getElementById("output").style.color = "#f87171";
+      } else {
+        document.getElementById("output").innerText = "WebGL Vertex Shader compiled successfully!";
+        document.getElementById("output").style.color = "#4ade80";
+      }
+    }
+  } catch (e) {
+    document.getElementById("output").innerText = "Crash Error: " + e.toString();
+    document.getElementById("output").style.color = "#f87171";
+  }
+  </script>
+</body>
+</html>
