@@ -39,7 +39,8 @@ struct RenderParams {
   saturation : f32,
   paletteSize : f32,
   colorDepth : f32,
-  padding : vec2<f32>,
+  paletteWeight : f32,
+  padding : f32,
   palette : array<vec4<f32>, 32>,
 }
 
@@ -170,12 +171,6 @@ fn getBayer8(p: vec2<f32>) -> f32 {
 fn matchPalette(color: vec3<f32>) -> vec3<f32> {
   let size = i32(params.paletteSize);
   if (size <= 0) {
-    let depth = params.colorDepth;
-    if (depth > 0.0) {
-      let d = depth - 1.0;
-      let targetD = select(d, 1.0, d < 1.0);
-      return floor(color * targetD + 0.5) / targetD;
-    }
     return color;
   }
 
@@ -235,7 +230,20 @@ fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
   }
   
   let dithered = adjusted + vec3<f32>(ditherVal * spread * params.ditherAmount);
-  let finalRGB = matchPalette(dithered);
+  
+  // Base color (either quantized based on colorDepth, or original RGB if depth is 0)
+  var baseColor = dithered;
+  if (params.colorDepth > 0.0) {
+    let d = params.colorDepth - 1.0;
+    let targetD = select(d, 1.0, d < 1.0);
+    baseColor = floor(dithered * targetD + 0.5) / targetD;
+  }
+  
+  // Palette mapped color
+  let matchedColor = matchPalette(dithered);
+  
+  // Smoothly blend between base color and palette mapped color based on paletteWeight
+  let finalRGB = mix(baseColor, matchedColor, params.paletteWeight);
   
   return vec4<f32>(finalRGB, texColor.a);
 }

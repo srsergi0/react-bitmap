@@ -1,6 +1,6 @@
 {
   "name": "react-bitmap",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "High-performance React components for real-time retro pixelation, Bayer dithering, and custom color palette mapping using WebGL 2.0.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

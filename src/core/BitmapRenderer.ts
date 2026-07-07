@@ -33,6 +33,10 @@ export class BitmapRenderer {
   private currentPaletteFloats = new Float32Array(32 * 3);
   private startPaletteFloats = new Float32Array(32 * 3);
   private targetPaletteFloats = new Float32Array(32 * 3);
+  private currentPaletteWeight = 1.0;
+  private startPaletteWeight = 1.0;
+  private targetPaletteWeight = 1.0;
+  private activePaletteSize = 0;
   private transitionStartTime: number | null = null;
   private prevPaletteKey = '';
 
@@ -145,18 +149,18 @@ export class BitmapRenderer {
     options: BitmapRendererOptions
   ): boolean {
     const now = performance.now();
-    const newPaletteKey = options.palette ? options.palette.join(',') : '';
+    const newPaletteKey = options.palette ? options.palette.join(',') : 'NONE';
     let isTransitionActive = false;
 
     // Detect Palette changes
     if (newPaletteKey !== this.prevPaletteKey) {
       if (options.transitionPalette && this.prevPaletteKey !== '') {
-        // Copy current floats to start floats
+        // Copy current floats and weight to start
         this.startPaletteFloats.set(this.currentPaletteFloats);
+        this.startPaletteWeight = this.currentPaletteWeight;
 
-        // Prep new target floats
-        const targetFloats = new Float32Array(32 * 3);
         if (options.palette && options.palette.length > 0) {
+          const targetFloats = new Float32Array(32 * 3);
           const activeColors = options.palette.slice(0, 32);
           for (let i = 0; i < activeColors.length; i++) {
             const rgb = this.hexToRgb(activeColors[i]);
@@ -164,8 +168,20 @@ export class BitmapRenderer {
             targetFloats[i * 3 + 1] = rgb[1];
             targetFloats[i * 3 + 2] = rgb[2];
           }
+          this.targetPaletteFloats.set(targetFloats);
+          this.targetPaletteWeight = 1.0;
+          this.activePaletteSize = activeColors.length;
+
+          // If starting from NONE, populate start floats with target floats
+          if (this.startPaletteWeight === 0.0) {
+            this.startPaletteFloats.set(targetFloats);
+          }
+        } else {
+          // Transitioning to NONE (Full RGB/Grayscale)
+          // Keep target floats same as start floats so colors don't fade to black
+          this.targetPaletteFloats.set(this.startPaletteFloats);
+          this.targetPaletteWeight = 0.0;
         }
-        this.targetPaletteFloats.set(targetFloats);
         this.transitionStartTime = now;
       } else {
         // Instant setup
@@ -178,6 +194,11 @@ export class BitmapRenderer {
             newFloats[i * 3 + 1] = rgb[1];
             newFloats[i * 3 + 2] = rgb[2];
           }
+          this.currentPaletteWeight = 1.0;
+          this.activePaletteSize = activeColors.length;
+        } else {
+          this.currentPaletteWeight = 0.0;
+          this.activePaletteSize = 0;
         }
         this.currentPaletteFloats.set(newFloats);
         this.transitionStartTime = null;
@@ -196,8 +217,14 @@ export class BitmapRenderer {
         this.currentPaletteFloats[i] = this.startPaletteFloats[i] + (this.targetPaletteFloats[i] - this.startPaletteFloats[i]) * t;
       }
 
+      // Lerp Palette Weight
+      this.currentPaletteWeight = this.startPaletteWeight + (this.targetPaletteWeight - this.startPaletteWeight) * t;
+
       if (t >= 1.0) {
         this.transitionStartTime = null;
+        if (this.targetPaletteWeight === 0.0) {
+          this.activePaletteSize = 0;
+        }
       } else {
         isTransitionActive = true;
       }
@@ -261,11 +288,9 @@ export class BitmapRenderer {
     paramsArray[6] = options.contrast;
     paramsArray[7] = options.saturation;
 
-    let paletteSizeVal = 0;
-    if (options.palette && options.palette.length > 0) {
-      // During active transition, palette size matches target palette length
-      paletteSizeVal = options.palette.length;
-      for (let i = 0; i < Math.min(32, options.palette.length); i++) {
+    let paletteSizeVal = this.activePaletteSize;
+    if (paletteSizeVal > 0) {
+      for (let i = 0; i < Math.min(32, paletteSizeVal); i++) {
         paramsArray[12 + i * 4 + 0] = this.currentPaletteFloats[i * 3 + 0];
         paramsArray[12 + i * 4 + 1] = this.currentPaletteFloats[i * 3 + 1];
         paramsArray[12 + i * 4 + 2] = this.currentPaletteFloats[i * 3 + 2];
@@ -274,6 +299,7 @@ export class BitmapRenderer {
     }
     paramsArray[8] = paletteSizeVal;
     paramsArray[9] = options.colorDepth;
+    paramsArray[10] = this.currentPaletteWeight;
 
     // 3. Write Uniforms buffer
     device.queue.writeBuffer(this.uniformBuffer!, 0, paramsArray.buffer);
