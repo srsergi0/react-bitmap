@@ -2,35 +2,132 @@ import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef } f
 import { BitmapRenderer } from '../core/BitmapRenderer';
 import { resolvePalette, PaletteName } from '../core/palettes';
 
+/**
+ * Props for the BitVideo component.
+ */
 export interface BitVideoProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
+  /**
+   * The source URL of the video file to load and render.
+   */
   src?: string;
+  /**
+   * A MediaStream (e.g., from a webcam or canvas capture) to render in real-time.
+   */
   stream?: MediaStream;
+  /**
+   * The size of the pixelated blocks. Larger values result in a more pixelated, lower resolution look.
+   * @default 4
+   */
   pixelSize?: number;
+  /**
+   * The dithering algorithm to apply to each video frame.
+   * - 'none': Direct color quantization.
+   * - 'bayer2', 'bayer4', 'bayer8': Ordered dithering using Bayer matrices of different sizes.
+   * - 'halftone': Simulated halftone screening effect.
+   * - 'noise': Pseudo-random noise dithering.
+   * @default 'bayer4'
+   */
   ditherType?: 'none' | 'bayer2' | 'bayer4' | 'bayer8' | 'halftone' | 'noise';
+  /**
+   * The intensity/amount of the dithering effect, ranging from 0.0 (no dither) to 1.0 (full dither).
+   * @default 1.0
+   */
   ditherAmount?: number;
+  /**
+   * Brightness adjustment multiplier.
+   * @default 1.0
+   */
   brightness?: number;
+  /**
+   * Contrast adjustment multiplier.
+   * @default 1.0
+   */
   contrast?: number;
+  /**
+   * Saturation adjustment multiplier.
+   * @default 1.0
+   */
   saturation?: number;
+  /**
+   * An array of hex color strings (e.g., ['#000000', '#ffffff']) or a predefined PaletteName to map the video colors to.
+   */
   palette?: string[] | PaletteName;
+  /**
+   * Number of color steps/levels to use when no palette is applied (grayscale or full RGB).
+   * @default 8
+   */
   colorDepth?: number;
+  /**
+   * Whether to smoothly transition colors when the palette changes.
+   * @default false
+   */
   transitionPalette?: boolean;
+  /**
+   * Duration of the palette color transition in milliseconds.
+   * @default 300
+   */
   transitionDuration?: number; // in ms
+  /**
+   * Whether the internal video player is muted.
+   * @default true
+   */
   muted?: boolean;
+  /**
+   * Whether the internal video player should loop playback.
+   * @default true
+   */
   loop?: boolean;
+  /**
+   * Whether the internal video player should start playing automatically.
+   * @default true
+   */
   autoPlay?: boolean;
+  /**
+   * CORS configuration for loading cross-origin video files.
+   * @default 'anonymous'
+   */
   crossOrigin?: 'anonymous' | 'use-credentials';
+  /**
+   * Callback function fired when video playback starts or resumes.
+   */
   onPlay?: () => void;
+  /**
+   * Callback function fired when video playback is paused.
+   */
   onPause?: () => void;
+  /**
+   * Callback function fired when video playback finishes.
+   */
   onEnded?: () => void;
 }
 
+/**
+ * Handle ref object exposed by the BitVideo component.
+ */
 export interface BitVideoRef {
+  /**
+   * The underlying HTMLVideoElement used to load and play the source video.
+   */
   video: HTMLVideoElement | null;
+  /**
+   * The underlying HTMLCanvasElement where WebGL 2.0 renders the retro effect.
+   */
   canvas: HTMLCanvasElement | null;
+  /**
+   * Plays the video element.
+   */
   play: () => Promise<void>;
+  /**
+   * Pauses the video element.
+   */
   pause: () => void;
 }
 
+/**
+ * A high-performance React component that renders a pixelated and dithered version of a video file
+ * or live camera stream in real-time using WebGL 2.0. Supports custom palettes, multiple dithering
+ * algorithms, and smooth palette transitions.
+ */
 export const BitVideo = forwardRef<BitVideoRef, BitVideoProps>(({
   src,
   stream,

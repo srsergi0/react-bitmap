@@ -1,4 +1,4 @@
-export const PALETTE_PRESETS: Record<string, string[]> = {
+const presets = {
   monochrome: ['#000000', '#ffffff'],
   gameboy: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
   cga: ['#000000', '#55ffff', '#ff55ff', '#ffffff'],
@@ -15,7 +15,9 @@ export const PALETTE_PRESETS: Record<string, string[]> = {
   ]
 };
 
-export type PaletteName = keyof typeof PALETTE_PRESETS;
+export const PALETTE_PRESETS: Record<string, string[]> & typeof presets = presets;
+
+export type PaletteName = keyof typeof presets;
 
 export function resolvePalette(palette: string[] | PaletteName | undefined | null): string[] | null {
   if (!palette) return null;

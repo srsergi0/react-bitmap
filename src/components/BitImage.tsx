@@ -2,21 +2,77 @@ import React, { useRef, useEffect, useState } from 'react';
 import { BitmapRenderer } from '../core/BitmapRenderer';
 import { resolvePalette, PaletteName } from '../core/palettes';
 
+/**
+ * Props for the BitImage component.
+ */
 export interface BitImageProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
+  /**
+   * The source URL or base64 data URI of the image to render.
+   */
   src: string;
+  /**
+   * The size of the pixelated blocks. Larger values result in a more pixelated, lower resolution look.
+   * @default 4
+   */
   pixelSize?: number;
+  /**
+   * The dithering algorithm to apply to the image.
+   * - 'none': Direct color quantization.
+   * - 'bayer2', 'bayer4', 'bayer8': Ordered dithering using Bayer matrices of different sizes.
+   * - 'halftone': Simulated halftone screening effect.
+   * - 'noise': Pseudo-random noise dithering.
+   * @default 'bayer4'
+   */
   ditherType?: 'none' | 'bayer2' | 'bayer4' | 'bayer8' | 'halftone' | 'noise';
+  /**
+   * The intensity/amount of the dithering effect, ranging from 0.0 (no dither) to 1.0 (full dither).
+   * @default 1.0
+   */
   ditherAmount?: number;
+  /**
+   * Brightness adjustment multiplier.
+   * @default 1.0
+   */
   brightness?: number;
+  /**
+   * Contrast adjustment multiplier.
+   * @default 1.0
+   */
   contrast?: number;
+  /**
+   * Saturation adjustment multiplier.
+   * @default 1.0
+   */
   saturation?: number;
+  /**
+   * An array of hex color strings (e.g., ['#000000', '#ffffff']) or a predefined PaletteName to map the image colors to.
+   */
   palette?: string[] | PaletteName;
+  /**
+   * Number of color steps/levels to use when no palette is applied (grayscale or full RGB).
+   * @default 8
+   */
   colorDepth?: number;
+  /**
+   * Whether to smoothly transition colors when the palette changes.
+   * @default false
+   */
   transitionPalette?: boolean;
+  /**
+   * Duration of the palette color transition in milliseconds.
+   * @default 300
+   */
   transitionDuration?: number; // in ms
+  /**
+   * Callback function fired when the source image has successfully loaded.
+   */
   onLoad?: () => void;
 }
 
+/**
+ * A high-performance React component that renders a pixelated and dithered version of an image
+ * using WebGL 2.0. Supports custom palettes, multiple dithering algorithms, and smooth palette transitions.
+ */
 export const BitImage: React.FC<BitImageProps> = ({
   src,
   pixelSize = 4,
